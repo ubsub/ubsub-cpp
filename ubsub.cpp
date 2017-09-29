@@ -12,7 +12,7 @@ static uint32_t getTime() {
 	return now();
 }
 static uint8_t getNonce() {
-	return random(256) * random(256) * random(256) * random(256);
+	return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
 }
 #else //PC?
 #include <ctime>
