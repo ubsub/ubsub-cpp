@@ -2,7 +2,6 @@
 #define Sha256_h
 
 #include <inttypes.h>
-//#include "Print.h"
 
 #define HASH_LENGTH 32
 #define BLOCK_LENGTH 64
@@ -23,8 +22,8 @@ class Sha256Class
     void initHmac(const uint8_t* secret, int secretLength);
     uint8_t* result(void);
     uint8_t* resultHmac(void);
-    virtual void write(uint8_t);
-    //using Print::write;
+    void write(uint8_t v);
+    void write(const uint8_t* str, int len);
   private:
     void pad();
     void addUncounted(uint8_t data);

@@ -4,9 +4,13 @@ C++ Client and UDP verification for [UbSub.io](https://ubsub.io).
 
 This client will allow for sending/receiving V1 UDP datagrams to trigger events on UbSub.
 
+Currently, all you need is the sha256 and ubsub files.  In [ubsub.h](ubsub.h) you'll find all exposed functions
+for various embedded platforms (including libc/unix compatibility).
+
 ## CryptoSuite
 
-Sha256 implementation is from [Cathedrow/Cryptosuite](https://github.com/Cathedrow/Cryptosuite)
+Sha256 implementation is from [Cathedrow/Cryptosuite](https://github.com/Cathedrow/Cryptosuite) with small modifications
+for compatibility.
 
 # License
 

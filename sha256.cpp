@@ -1,9 +1,21 @@
 #include <string.h>
-//#include <avr/io.h>
-//#include <avr/pgmspace.h>
 #include "sha256.h"
 
-uint32_t sha256K[] = {
+#ifndef PROGMEM
+#define PROGMEM
+#endif
+
+#ifndef memcpy_P
+#define memcpy_P memcpy
+#endif
+
+#ifndef pgm_read_dword
+uint32_t pgm_read_dword(uint32_t* v) {
+  return *v;
+}
+#endif
+
+uint32_t sha256K[] PROGMEM = {
   0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
   0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
   0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
@@ -16,7 +28,7 @@ uint32_t sha256K[] = {
 
 #define BUFFER_SIZE 64
 
-uint8_t sha256InitState[] = {
+uint8_t sha256InitState[] PROGMEM = {
   0x67,0xe6,0x09,0x6a, // H0
   0x85,0xae,0x67,0xbb, // H1
   0x72,0xf3,0x6e,0x3c, // H2
@@ -28,7 +40,7 @@ uint8_t sha256InitState[] = {
 };
 
 void Sha256Class::init(void) {
-  memcpy(state.b,sha256InitState,32);
+  memcpy_P(state.b,sha256InitState,32);
   byteCount = 0;
   bufferOffset = 0;
 }
@@ -62,7 +74,7 @@ void Sha256Class::hashBlock() {
     t1 = h;
     t1 += ror32(e,6) ^ ror32(e,11) ^ ror32(e,25); // ∑1(e)
     t1 += g ^ (e & (g ^ f)); // Ch(e,f,g)
-    t1 += sha256K[i]; // Ki
+    t1 += pgm_read_dword(sha256K+i); // Ki
     t1 += buffer.w[i&15]; // Wi
     t2 = ror32(a,2) ^ ror32(a,13) ^ ror32(a,22); // ∑0(a)
     t2 += ((b & c) | (a & (b | c))); // Maj(a,b,c)
@@ -90,6 +102,14 @@ void Sha256Class::addUncounted(uint8_t data) {
 void Sha256Class::write(uint8_t data) {
   ++byteCount;
   addUncounted(data);
+}
+
+void Sha256Class::write(const uint8_t* data, int len) {
+  const uint8_t* end = data + len;
+  while(data < end) {
+    write(*data);
+    ++data;
+  }
 }
 
 void Sha256Class::pad() {
