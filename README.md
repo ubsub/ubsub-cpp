@@ -7,6 +7,19 @@ This client will allow for sending/receiving V1 UDP datagrams to trigger events 
 Currently, all you need is the sha256 and ubsub files.  In [ubsub.h](ubsub.h) you'll find all exposed functions
 for various embedded platforms (including libc/unix compatibility).
 
+# Usage
+
+Usage can be as simple as sending an event. eg:
+```c
+#include "ubsub.h"
+int main() {
+	sendEvent("topicId", "topicKey", "hi there");
+	return 0;
+}
+```
+
+# Third Party
+
 ## CryptoSuite
 
 Sha256 implementation is from [Cathedrow/Cryptosuite](https://github.com/Cathedrow/Cryptosuite) with small modifications
