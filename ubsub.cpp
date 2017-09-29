@@ -3,6 +3,8 @@
 #include "sha256.h"
 
 const static int HEADER_SIZE = 73;
+const static uint16_t UBSUB_PORT = 4000;
+const static char UBSUB_HOST[] = "router.ubsub.io";
 
 #ifdef ARDUINO
 #error "Arduino not supported yet"
@@ -17,6 +19,10 @@ static uint8_t getNonce() {
 #else //PC?
 #include <ctime>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 static uint32_t getTime() {
 	return std::time(NULL);
 }
@@ -24,6 +30,7 @@ static uint32_t getNonce() {
 	srand(getTime()); //TODO: This isn't great
 	return (uint32_t)rand() + (uint32_t)rand();
 }
+static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 #endif
 
 int createPacket(uint8_t* buf, int bufSize, const char* topic, const char* key, const uint8_t* payload, int payloadSize) {
@@ -55,6 +62,39 @@ int createPacket(uint8_t* buf, int bufSize, const char* topic, const char* key, 
 	memcpy(buf+HEADER_SIZE, payload, payloadSize);
 
 	return payloadSize + HEADER_SIZE;
+}
+
+int sendEvent(uint8_t* buf, int bufSize, const char* topic, const char* key, const uint8_t* payload, int payloadSize) {
+	int retSize = createPacket(buf, bufSize, topic, key, payload, payloadSize);
+	if (retSize < 0)
+		return retSize; // err
+
+	struct hostent *server;
+	server = gethostbyname(UBSUB_HOST);
+	if (server == NULL)
+		return -2;
+
+	struct sockaddr_in serveraddr;
+	bzero((char*)&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	bcopy((char*)server->h_addr, (char*)&serveraddr.sin_addr.s_addr, server->h_length);
+	serveraddr.sin_port = htons(UBSUB_PORT);
+
+	return sendto(sockfd, buf, retSize, 0, (sockaddr*)&serveraddr, sizeof(serveraddr));
+}
+
+int sendEvent(const char* topic, const char* key, const uint8_t* payload, int payloadSize) {
+	const int bufSize = payloadSize + HEADER_SIZE;
+	uint8_t* buf = (uint8_t*)malloc(bufSize);
+
+	int ret = sendEvent(buf, bufSize, topic, key, payload, payloadSize);
+
+	free(buf);
+	return ret;
+}
+
+int sendEvent(const char* topic, const char* key, const char* message) {
+	return sendEvent(topic, key, (uint8_t*)message, strlen(message));
 }
 
 const uint8_t* getValidatedPayload(const uint8_t* datagram, int datagramSize, const char* key) {

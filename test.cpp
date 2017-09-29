@@ -16,4 +16,6 @@ int main() {
 	for (int i=0; i<sz; ++i) {
 		std::cout << buf[i];
 	}
+
+	sendEvent(topic, key, "hi");
 }
