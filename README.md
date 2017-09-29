@@ -18,6 +18,16 @@ int main() {
 }
 ```
 
+## Compatability
+
+ * Unix/Linux
+
+Future:
+
+ * Arduino
+ * Particle
+ * ESP8266 Boards
+
 # Third Party
 
 ## CryptoSuite
