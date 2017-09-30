@@ -43,7 +43,12 @@ static uint8_t getNonce() {
 
 static int sendDatagram(const uint8_t* buf, int bufSize) {
 #if ARDUINO
+	static WiFiUDP udp;
+	udp.beginPacket(UBSUB_HOST, UBSUB_PORT);
+	udp.write(buf, bufSize);
+	udp.endPacket();
 #elif PARTICLE
+	return -1;
 #else
 	static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
