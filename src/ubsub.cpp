@@ -6,7 +6,7 @@ const static uint16_t UBSUB_PORT = 4000;
 const static char UBSUB_HOST[] = "router.ubsub.io";
 
 // Grab the correct headers
-#if PARTICLE || PLATFORM_ID
+#if PARTICLE
 	#include <Particle.h>
 #elif ARDUINO
 	#include <Arduino.h>
@@ -22,50 +22,45 @@ const static char UBSUB_HOST[] = "router.ubsub.io";
 	#include <netdb.h>
 #endif
 
+static uint32_t getTime() {
 #if ARDUINO
-	static uint32_t getTime() {
-		return (uint32_t)(millis() / 1000);
-	}
-	static uint8_t getNonce() {
-		return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
-	}
-	static int sendDatagram(const uint8_t* buf, int bufSize) {
-		return -1;
-	}
-#elif PARTICLE || PLATFORM_ID
-	static uint32_t getTime() {
-		return now();
-	}
-	static uint8_t getNonce() {
-		return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
-	}
-	static int sendDatagram(const uint8_t* buf, int bufSize) {
-		return -1;
-	}
-#else //PC
-	static uint32_t getTime() {
-		return std::time(NULL);
-	}
-	static uint32_t getNonce() {
-		srand(getTime()); //TODO: This isn't great
-		return (uint32_t)rand() + (uint32_t)rand();
-	}
-	static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-	static int sendDatagram(const uint8_t* buf, int bufSize) {
-		struct hostent *server;
-		server = gethostbyname(UBSUB_HOST);
-		if (server == NULL)
-			return -2;
-
-		struct sockaddr_in serveraddr;
-		bzero((char*)&serveraddr, sizeof(serveraddr));
-		serveraddr.sin_family = AF_INET;
-		bcopy((char*)server->h_addr, (char*)&serveraddr.sin_addr.s_addr, server->h_length);
-		serveraddr.sin_port = htons(UBSUB_PORT);
-		
-		return sendto(sockfd, buf, bufSize, 0, (sockaddr*)&serveraddr, sizeof(serveraddr));
-	}
+	return (uint32_t)(millis() / 1000);
+#elif PARTICLE
+	return now();
+#else
+	return std::time(NULL);
 #endif
+}
+
+static uint8_t getNonce() {
+#if ARDUINO || PARTICLE
+	return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
+#else
+	srand(getTime()); //TODO: This isn't great
+	return (uint32_t)rand() + (uint32_t)rand();
+#endif
+}
+
+static int sendDatagram(const uint8_t* buf, int bufSize) {
+#if ARDUINO
+#elif PARTICLE
+#else
+	static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	struct hostent *server;
+	server = gethostbyname(UBSUB_HOST);
+	if (server == NULL)
+		return -2;
+
+	struct sockaddr_in serveraddr;
+	bzero((char*)&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	bcopy((char*)server->h_addr, (char*)&serveraddr.sin_addr.s_addr, server->h_length);
+	serveraddr.sin_port = htons(UBSUB_PORT);
+	
+	return sendto(sockfd, buf, bufSize, 0, (sockaddr*)&serveraddr, sizeof(serveraddr));
+#endif
+}
 
 int createPacket(uint8_t* buf, int bufSize, const char* topic, const char* key, const uint8_t* payload, int payloadSize) {
 	if (bufSize < payloadSize + HEADER_SIZE)
