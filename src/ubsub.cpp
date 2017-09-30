@@ -46,9 +46,12 @@ static int sendDatagram(const uint8_t* buf, int bufSize) {
 	static WiFiUDP udp;
 	udp.beginPacket(UBSUB_HOST, UBSUB_PORT);
 	udp.write(buf, bufSize);
-	udp.endPacket();
+	return udp.endPacket();
 #elif PARTICLE
-	return -1;
+	static UDP udp;
+	udp.beginPacket(UBSUB_HOST, UBSUB_PORT);
+	udp.write(buf, bufSize);
+	return udp.endPacket();
 #else
 	static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
