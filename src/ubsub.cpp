@@ -84,16 +84,17 @@ int createPacket(uint8_t* buf, int bufSize, const char* topic, const char* key, 
 	*(uint32_t*)(buf+33) = getTime(); //ts
 	*(uint32_t*)(buf+37) = getNonce(); //nonce
 	memcpy(buf+41, topic, topicLength);
+	*(buf+0) = 0x1; // Version
 
 	// Create signature
-	Sha256.initHmac((uint8_t*)key, strlen(key));
-	Sha256.write(buf+33, 40); // The above header we've written thus far
-	Sha256.write(payload, payloadSize);
-	uint8_t* digest = Sha256.resultHmac();
-
-	// Write signature header
-	*(buf+0) = 0x1; // Version
-	memcpy(buf+1, digest, 32);
+	if (key != NULL) {
+		Sha256.initHmac((uint8_t*)key, strlen(key));
+		Sha256.write(buf+33, 40); // The above header we've written thus far
+		Sha256.write(payload, payloadSize);
+		uint8_t* digest = Sha256.resultHmac();
+		// Write signature header
+		memcpy(buf+1, digest, 32);
+	}
 
 	// Copy in the payload
 	memcpy(buf+HEADER_SIZE, payload, payloadSize);
@@ -138,13 +139,15 @@ const uint8_t* getValidatedPayload(const uint8_t* datagram, int datagramSize, co
 		return NULL; // Failed timestamp, too old
 
 	// Create our own digest
-	Sha256.initHmac((uint8_t*)key, strlen(key));
-	Sha256.write(datagram + 33, datagramSize - 33);
-	uint8_t* digest = Sha256.resultHmac();
+	if (key != NULL) {
+		Sha256.initHmac((uint8_t*)key, strlen(key));
+		Sha256.write(datagram + 33, datagramSize - 33);
+		uint8_t* digest = Sha256.resultHmac();
 
-	// Compare
-	if (memcmp(datagram + 1, digest, 32) != 0)
-		return NULL;
+		// Compare
+		if (memcmp(datagram + 1, digest, 32) != 0)
+			return NULL;
+	}
 
 	return datagram + HEADER_SIZE;
 }
