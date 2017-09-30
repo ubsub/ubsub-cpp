@@ -1,4 +1,11 @@
 #include "ubsub.h"
+
+#if PARTICLE || ARDUINO
+#include <Arduino.h>
+void setup(){}
+void loop(){}
+#else
+
 #include <iostream>
 #include <string.h>
 
@@ -21,3 +28,4 @@ int main() {
 	// Sending a packet to ubsub
 	sendEvent(topic, key, payload);
 }
+#endif

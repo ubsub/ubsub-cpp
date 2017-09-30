@@ -30,9 +30,10 @@ Future:
 
 # Building
 
-For building/testing locally, we use [platformio](http://platformio.org/) to build against embedded frameworks.
+For building/testing locally, we use [platformio](http://platformio.org/) to build against embedded frameworks, and also
+compile against linux/unix.  This is the main file and what the build system uses.
 
-We've also included a `Makefile` to build and test locally on a unix-based system.
+We've also included a `Makefile` to build and test locally on a unix-based system if you don't want to install platformio.
 
 # Third Party
 

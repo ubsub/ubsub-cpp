@@ -1,4 +1,9 @@
+#if ARDUINO
+#include <Arduino.h>
+#else
 #include <string.h>
+#endif
+
 #include "sha256.h"
 
 #ifndef PROGMEM

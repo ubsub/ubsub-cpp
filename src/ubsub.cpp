@@ -1,4 +1,3 @@
-#include <string.h>
 #include "ubsub.h"
 #include "sha256.h"
 
@@ -6,31 +5,66 @@ const static int HEADER_SIZE = 73;
 const static uint16_t UBSUB_PORT = 4000;
 const static char UBSUB_HOST[] = "router.ubsub.io";
 
-#ifdef ARDUINO
-#error "Arduino not supported yet"
+// Grab the correct headers
+#if PARTICLE || PLATFORM_ID
+	#include <Particle.h>
+#elif ARDUINO
+	#include <Arduino.h>
+	#include <ESP8266WiFi.h>
+	#include <WiFiUdp.h>
+#else
+	#include <string.h>
+	#include <ctime>
+	#include <stdlib.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+#endif
+
+#if ARDUINO
+	static uint32_t getTime() {
+		return (uint32_t)(millis() / 1000);
+	}
+	static uint8_t getNonce() {
+		return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
+	}
+	static int sendDatagram(const uint8_t* buf, int bufSize) {
+		return -1;
+	}
 #elif PARTICLE || PLATFORM_ID
-#include "Particle.h"
-static uint32_t getTime() {
-	return now();
-}
-static uint8_t getNonce() {
-	return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
-}
-#else //PC?
-#include <ctime>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-static uint32_t getTime() {
-	return std::time(NULL);
-}
-static uint32_t getNonce() {
-	srand(getTime()); //TODO: This isn't great
-	return (uint32_t)rand() + (uint32_t)rand();
-}
-static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	static uint32_t getTime() {
+		return now();
+	}
+	static uint8_t getNonce() {
+		return (random(256) << 24) | (random(256) << 16) | (random(256) << 8) | random(256);
+	}
+	static int sendDatagram(const uint8_t* buf, int bufSize) {
+		return -1;
+	}
+#else //PC
+	static uint32_t getTime() {
+		return std::time(NULL);
+	}
+	static uint32_t getNonce() {
+		srand(getTime()); //TODO: This isn't great
+		return (uint32_t)rand() + (uint32_t)rand();
+	}
+	static int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	static int sendDatagram(const uint8_t* buf, int bufSize) {
+		struct hostent *server;
+		server = gethostbyname(UBSUB_HOST);
+		if (server == NULL)
+			return -2;
+
+		struct sockaddr_in serveraddr;
+		bzero((char*)&serveraddr, sizeof(serveraddr));
+		serveraddr.sin_family = AF_INET;
+		bcopy((char*)server->h_addr, (char*)&serveraddr.sin_addr.s_addr, server->h_length);
+		serveraddr.sin_port = htons(UBSUB_PORT);
+		
+		return sendto(sockfd, buf, bufSize, 0, (sockaddr*)&serveraddr, sizeof(serveraddr));
+	}
 #endif
 
 int createPacket(uint8_t* buf, int bufSize, const char* topic, const char* key, const uint8_t* payload, int payloadSize) {
@@ -69,18 +103,7 @@ int sendEvent(uint8_t* buf, int bufSize, const char* topic, const char* key, con
 	if (retSize < 0)
 		return retSize; // err
 
-	struct hostent *server;
-	server = gethostbyname(UBSUB_HOST);
-	if (server == NULL)
-		return -2;
-
-	struct sockaddr_in serveraddr;
-	bzero((char*)&serveraddr, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	bcopy((char*)server->h_addr, (char*)&serveraddr.sin_addr.s_addr, server->h_length);
-	serveraddr.sin_port = htons(UBSUB_PORT);
-
-	return sendto(sockfd, buf, retSize, 0, (sockaddr*)&serveraddr, sizeof(serveraddr));
+	return sendDatagram(buf, retSize);
 }
 
 int sendEvent(const char* topic, const char* key, const uint8_t* payload, int payloadSize) {
