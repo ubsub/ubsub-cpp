@@ -17,5 +17,6 @@ int main() {
 		std::cout << buf[i];
 	}
 
-	sendEvent(topic, key, "hi");
+	// Sending a packet to ubsub
+	sendEvent(topic, key, payload);
 }
