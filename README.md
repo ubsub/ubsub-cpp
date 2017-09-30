@@ -4,7 +4,7 @@ C++ Client and UDP verification for [UbSub.io](https://ubsub.io).
 
 This client will allow for sending/receiving V1 UDP datagrams to trigger events on UbSub.
 
-Currently, all you need is the sha256 and ubsub files.  In [ubsub.h](ubsub.h) you'll find all exposed functions
+Currently, all you need is the sha256 and ubsub files.  In [ubsub.h](src/ubsub.h) you'll find all exposed functions
 for various embedded platforms (including libc/unix compatibility).
 
 # Usage
@@ -27,6 +27,12 @@ Future:
  * Arduino
  * Particle
  * ESP8266 Boards
+
+# Building
+
+For building/testing locally, we use [platformio](http://platformio.org/) to build against embedded frameworks.
+
+We've also included a `Makefile` to build and test locally on a unix-based system.
 
 # Third Party
 
