@@ -1,5 +1,7 @@
 # UbSub-C
 
+[![Build Status](https://travis-ci.org/zix99/ubsub-cpp.svg?branch=master)](https://travis-ci.org/zix99/ubsub-cpp)
+
 C++ Client and UDP verification for [UbSub.io](https://ubsub.io).
 
 This client will allow for sending/receiving V1 UDP datagrams to trigger events on UbSub.
