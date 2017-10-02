@@ -1,4 +1,4 @@
-# UbSub-C
+# UbSub-CPP
 
 [![Build Status](https://travis-ci.org/zix99/ubsub-cpp.svg?branch=master)](https://travis-ci.org/zix99/ubsub-cpp)
 
@@ -23,9 +23,6 @@ int main() {
 ## Compatability
 
  * Unix/Linux
-
-Future:
-
  * Arduino
  * Particle
  * ESP8266 Boards
