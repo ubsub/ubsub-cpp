@@ -1,6 +1,6 @@
 # UbSub-CPP
 
-[![Build Status](https://travis-ci.org/zix99/ubsub-cpp.svg?branch=master)](https://travis-ci.org/zix99/ubsub-cpp)
+[![Build Status](https://travis-ci.org/ubsub/ubsub-cpp.svg?branch=master)](https://travis-ci.org/ubsub/ubsub-cpp)
 
 C++ Client and UDP verification for [UbSub.io](https://ubsub.io).
 
