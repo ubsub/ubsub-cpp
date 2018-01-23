@@ -1,3 +1,7 @@
+# NOTE: DEPRECATED
+
+This library has been deprecated in favor of a router-negotiating, encrypted, version you can find [here](https://github.com/ubsub/ubsub-iot)
+
 # UbSub-CPP
 
 [![Build Status](https://travis-ci.org/ubsub/ubsub-cpp.svg?branch=master)](https://travis-ci.org/ubsub/ubsub-cpp)
